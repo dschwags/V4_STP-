@@ -38,7 +38,9 @@ async function main() {
   console.log('🚀 Setting up Sharing Application Database...');
   
   const POSTGRES_URL = 'postgresql://postgres:SHjHbEju@127.0.0.1:5432/sharing_app';
-  const BASE_URL = 'http://localhost:3000';
+  const BASE_URL = process.env.BASE_URL || process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
   const AUTH_SECRET = generateAuthSecret();
 
   await writeEnvFile({
