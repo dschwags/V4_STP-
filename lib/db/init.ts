@@ -1,4 +1,5 @@
 import { initializeDatabase, seedDatabase } from './migrate';
+import { validateDatabaseConnection } from './connection-validator';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -15,14 +16,21 @@ export async function ensureDatabaseInitialized() {
     return;
   }
 
-  // Start initialization
+  // Start initialization with BugX validation
   initializationPromise = (async () => {
     try {
-      console.log('🔧 Ensuring database is initialized...');
+      console.log('🔧 BugX: Ensuring database is initialized...');
+      
+      // BugX Pattern: Validate connection before initialization
+      const isConnected = await validateDatabaseConnection();
+      if (!isConnected) {
+        throw new Error('BugX: Cannot initialize - database connection unavailable');
+      }
+      
       await initializeDatabase();
       await seedDatabase();
       isInitialized = true;
-      console.log('✅ Database initialization complete');
+      console.log('✅ BugX: Database initialization complete');
     } catch (error) {
       console.error('❌ Database initialization failed:', error);
       // Reset promise so it can be retried

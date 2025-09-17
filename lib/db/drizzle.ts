@@ -15,16 +15,32 @@ if (!DATABASE_URL) {
 
 console.log('Database URL configured:', DATABASE_URL.includes('supabase') ? 'Supabase' : 'Local');
 
-// Configure postgres client with appropriate options
-const connectionConfig = DATABASE_URL.includes('supabase') 
+// BugX Pattern: Enhanced connection configuration
+const connectionConfig = DATABASE_URL.includes('supabase') || process.env.VERCEL
   ? { 
-      // Supabase production configuration
-      connection: { 
-        ssl: { rejectUnauthorized: false } 
+      // Production/Supabase configuration - BugX optimized
+      ssl: 'require',
+      max: 1,  // Vercel serverless function limit
+      idle_timeout: 20,
+      connect_timeout: 5,  // BugX: Faster timeout for serverless
+      transform: {
+        undefined: null  // BugX: Handle undefined values gracefully
       },
-      max: 1  // Vercel serverless function limit
+      onnotice: (notice: any) => {
+        console.log('🔔 BugX: Database notice:', notice.message);
+      }
     }
-  : {}; // Local development configuration
+  : {
+      // Local development configuration
+      max: 10,
+      idle_timeout: 30
+    };
+
+console.log('🔗 Database connection config:', {
+  isSupabase: DATABASE_URL.includes('supabase'),
+  isVercel: !!process.env.VERCEL,
+  hasSSL: !!connectionConfig.ssl
+});
 
 export const client = postgres(DATABASE_URL, connectionConfig);
 export const db = drizzle(client, { schema });

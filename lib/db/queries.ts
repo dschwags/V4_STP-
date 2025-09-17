@@ -4,14 +4,22 @@ import { activityLogs, users } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 import { ensureDatabaseInitialized } from './init';
+import { validateDatabaseConnection } from './connection-validator';
 
 export async function getUser() {
   try {
+    // BugX Pattern: Validate connection before initialization
+    const isConnected = await validateDatabaseConnection();
+    if (!isConnected) {
+      console.log('🔄 BugX: Database unavailable, returning null user');
+      return null; // Graceful fallback
+    }
+    
     // Ensure database is initialized before any queries
     await ensureDatabaseInitialized();
   } catch (error) {
-    console.error('Database initialization failed in getUser:', error);
-    return null;
+    console.error('BugX: Database initialization failed in getUser:', error);
+    return null; // Always return null on error
   }
 
   const sessionCookie = (await cookies()).get('session');
@@ -52,6 +60,12 @@ export async function getUser() {
 
 export async function getActivityLogs() {
   try {
+    // BugX Pattern: Validate connection first
+    const isConnected = await validateDatabaseConnection();
+    if (!isConnected) {
+      throw new Error('Database connection unavailable for activity logs');
+    }
+    
     // Ensure database is initialized
     await ensureDatabaseInitialized();
     
