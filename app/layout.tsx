@@ -33,8 +33,8 @@ export default function RootLayout({
           <SWRConfig
             value={{
               fallback: {
-                // BugX: Temporarily disable getUser() to prevent server crashes
-                // '/api/user': getUser()
+                // BugX: Re-enabled after successful database setup
+                '/api/user': getUser()
               }
             }}
           >
