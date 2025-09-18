@@ -37,7 +37,7 @@ next-env.d.ts
 .vscode
 
 # Debug files (BugX)
-debug-session.ts
+# debug-session.ts (temporarily allowed for phantom file fix)
 bugx-debug*.ts
 bugx-analysis*.md
 
