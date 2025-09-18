@@ -36,6 +36,11 @@ yarn-error.log*
 next-env.d.ts
 .vscode
 
+# Debug files (BugX)
+debug-session.ts
+bugx-debug*.ts
+bugx-analysis*.md
+
 # Docker
 postgres_data/
 .env*.local
