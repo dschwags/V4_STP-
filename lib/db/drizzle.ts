@@ -15,11 +15,11 @@ if (!DATABASE_URL) {
 
 console.log('Database URL configured:', DATABASE_URL.includes('supabase') ? 'Supabase' : 'Local');
 
-// BugX Pattern: Enhanced connection configuration
+// BugX v1.4 Fix: Correct TypeScript configuration
 const connectionConfig = DATABASE_URL.includes('supabase') || process.env.VERCEL
   ? { 
       // Production/Supabase configuration - BugX optimized
-      ssl: 'require',
+      ssl: 'require' as const,  // BugX: Fix TypeScript literal type
       max: 1,  // Vercel serverless function limit
       idle_timeout: 20,
       connect_timeout: 5,  // BugX: Faster timeout for serverless
