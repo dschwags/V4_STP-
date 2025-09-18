@@ -6,6 +6,7 @@ import { SWRConfig } from 'swr';
 import Header from '@/components/header';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { siteConfig } from '@/lib/config';
+import { DebugSessionState } from '@/components/debug-session-state';
 
 export const metadata: Metadata = {
   title: siteConfig.title,
@@ -41,6 +42,7 @@ export default function RootLayout({
             <div className="flex flex-col min-h-screen">
               <Header />
               {children}
+              <DebugSessionState />
             </div>
           </SWRConfig>
         </ThemeProvider>

@@ -20,10 +20,10 @@ export async function validateDatabaseConnection(): Promise<boolean> {
   try {
     console.log('🔍 BugX: Testing database connection...');
     
-    // Simple connection test with timeout
+    // Simple connection test with extended timeout for Supabase pooler
     const testPromise = db.execute(sql`SELECT 1 as test`);
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timeout')), 5000)
+      setTimeout(() => reject(new Error('Connection timeout')), 15000)  // BugX: 15s for pooler
     );
     
     await Promise.race([testPromise, timeoutPromise]);

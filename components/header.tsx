@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CircleIcon, LogOut, User as UserIcon } from 'lucide-react';
 import {
@@ -23,13 +23,51 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: user } = useSWR<User>('/api/user', fetcher);
+  const { data: user, mutate: mutateUser } = useSWR<User>('/api/user', fetcher, {
+    // BugX: Balanced revalidation - fixed session sync but not spammy
+    revalidateOnFocus: false, // Only on manual triggers
+    revalidateOnReconnect: true,
+    refreshInterval: 0, // No auto refresh - only manual
+    dedupingInterval: 5000 // Cache for 5 seconds
+  });
   const router = useRouter();
+  
+  // BugX: Force revalidation on URL auth parameter change
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('_auth')) {
+      console.log('⚡ BugX: Auth parameter detected, forcing user data refresh');
+      mutateUser();
+      // Clean URL without triggering navigation
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+  }, [mutateUser]);
 
   async function handleSignOut() {
-    await signOut();
-    mutate('/api/user');
-    router.push('/');
+    console.log('💪 BugX: Starting comprehensive logout process');
+    
+    try {
+      // Clear client-side session data first
+      mutateUser(undefined, false);
+      await mutate('/api/user', null, false);
+      
+      // Call server-side logout
+      await signOut();
+      
+      // Force complete cache invalidation
+      await mutateUser();
+      await mutate('/api/user');
+      
+      console.log('✅ BugX: Logout complete, redirecting');
+      
+      // Force navigation with cache bust
+      router.push(`/?_logout=${Date.now()}`);
+    } catch (error) {
+      console.error('❌ BugX: Logout error:', error);
+      // Force navigation anyway
+      router.push('/');
+    }
   }
 
   if (!user) {
